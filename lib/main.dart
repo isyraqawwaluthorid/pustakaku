@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/theme.dart';
+import 'core/demo_mode.dart';
 import 'firebase_options.dart';
 import 'providers/providers.dart';
 import 'screens/login_screen.dart';
@@ -24,7 +25,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // 1b. Mode demo: arahkan Auth & Firestore ke Local Emulator Suite.
-  if (DefaultFirebaseOptions.isDemo) {
+  if (isDemoMode) {
     // Emulator Android memakai 10.0.2.2 untuk mencapai localhost host.
     final host = !kIsWeb && Platform.isAndroid ? '10.0.2.2' : 'localhost';
     await FirebaseAuth.instance.useAuthEmulator(host, 9099);
@@ -35,7 +36,7 @@ Future<void> main() async {
   // 2. Push notification: handler background harus didaftarkan sebelum runApp.
   //    FCM membutuhkan proyek Firebase sungguhan & (di web) service worker,
   //    jadi dilewati pada mode demo / web.
-  if (!DefaultFirebaseOptions.isDemo && !kIsWeb) {
+  if (!isDemoMode && !kIsWeb) {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     await NotificationService.instance.init();
   }

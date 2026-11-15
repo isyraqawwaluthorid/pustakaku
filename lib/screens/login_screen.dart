@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/extensions.dart';
 import '../core/mixins.dart';
-import '../firebase_options.dart';
+import '../core/demo_mode.dart';
 import '../providers/providers.dart';
 import 'register_screen.dart';
 
@@ -126,7 +126,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with ValidatorsMixin 
                               child: CircularProgressIndicator(strokeWidth: 2))
                           : const Text('Masuk'),
                     ),
-                    if (DefaultFirebaseOptions.isDemo) ...[
+                    if (isDemoMode) ...[
                       const SizedBox(height: 20),
                       Row(children: [
                         const Expanded(child: Divider()),
