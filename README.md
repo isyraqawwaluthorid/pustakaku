@@ -101,6 +101,13 @@ dart pub global activate flutterfire_cli
 
 ### 2. Hubungkan ke proyek Firebase
 
+> Repositori ini sudah terhubung ke proyek Firebase **`pustakaku-8c065`** (`lib/firebase_options.dart`,
+> `.firebaserc`). File `android/app/google-services.json` dan `ios/Runner/GoogleService-Info.plist`
+> sengaja tidak ikut di repositori; dapatkan dari pemilik proyek atau jalankan ulang
+> `flutterfire configure` dengan akses ke proyek tersebut. Rules dan index Firestore sudah di-deploy.
+> Akun yang tersedia: `admin@pustakaku.id` (admin) dan `budi@pustakaku.id` (pengguna).
+> Untuk membuat proyek Firebase sendiri, ikuti langkah di bawah.
+
 1. Buat proyek di [Firebase Console](https://console.firebase.google.com).
 2. Jalankan di root proyek (menghasilkan `lib/firebase_options.dart`,
    `android/app/google-services.json`, dan `ios/Runner/GoogleService-Info.plist`):
@@ -129,8 +136,10 @@ flutter run
 ```
 
 Daftar akun pertama lewat aplikasi, lalu jadikan admin dari Firebase Console:
-**Firestore → users → {uid} → role: `admin`**. Setelah itu tab **Admin** muncul
-dan admin lain dapat ditunjuk dari dalam aplikasi.
+**Firestore → users → {uid} → role: `admin`**. Ini satu-satunya cara menunjuk admin
+pertama, karena Firestore rules melarang siapa pun menaikkan role-nya sendiri.
+Perubahan role langsung terlihat di aplikasi tanpa login ulang (stream realtime); setelah
+itu admin lain dapat ditunjuk dari tab **Admin** di dalam aplikasi.
 
 ### 4. Push notification
 
@@ -150,6 +159,11 @@ firebase deploy --only functions
 **b. Manual (tanpa Blaze)** — Firebase Console → **Messaging → New campaign →
 Notifications**, target **Topic: `pengumuman`**, atau **Send test message**
 dengan token FCM yang bisa disalin dari halaman Profil aplikasi.
+
+> **Catatan emulator Android:** registrasi FCM membutuhkan Google Play Services yang sudah
+> check-in ke Google. Pada emulator baru hal ini kadang gagal (`FCM Registration failed`,
+> `AUTHENTICATION_FAILED` di logcat) sampai Play Services selesai memperbarui diri atau
+> sebuah akun Google ditambahkan di emulator. Pengujian paling andal adalah di HP Android asli.
 
 Notifikasi yang masuk saat aplikasi terbuka ditampilkan lewat
 `flutter_local_notifications`; saat aplikasi di background/tertutup ditampilkan
