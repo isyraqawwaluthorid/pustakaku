@@ -164,6 +164,8 @@ dengan token FCM yang bisa disalin dari halaman Profil aplikasi.
 > check-in ke Google. Pada emulator baru hal ini kadang gagal (`FCM Registration failed`,
 > `AUTHENTICATION_FAILED` di logcat) sampai Play Services selesai memperbarui diri atau
 > sebuah akun Google ditambahkan di emulator. Pengujian paling andal adalah di HP Android asli.
+> Terverifikasi berjalan pada emulator **Android 14 (API 34, image Google Play)**: token FCM tersimpan
+> ke `users/{uid}.fcmToken` dan pesan uji dari Firebase Console muncul di panel notifikasi.
 
 Notifikasi yang masuk saat aplikasi terbuka ditampilkan lewat
 `flutter_local_notifications`; saat aplikasi di background/tertutup ditampilkan
