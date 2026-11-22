@@ -6,6 +6,49 @@ favorit, ulasan, pengumuman, dan push notification ditangani **Firebase**.
 
 Dibuat sebagai Projek Akhir mata kuliah Pemrograman Mobile.
 
+## Tentang Aplikasi
+
+**Pustakaku** adalah rak buku digital di saku. Pengguna bisa menjelajah jutaan judul
+dari Open Library, menyimpan buku yang ingin dibaca ke rak pribadi, memberi rating dan
+ulasan, serta menerima pengumuman dari admin lewat push notification. Tampilannya
+bergaya **Perpustakaan Klasik**: kertas krem, hijau tua khas perpustakaan, aksen
+kuningan, dan judul berhuruf serif, supaya terasa seperti membuka katalog perpustakaan.
+
+### Alur penggunaan
+
+1. **Daftar / masuk** dengan email dan kata sandi. Akun baru otomatis berperan `user`.
+2. **Jelajah**: lihat buku tren hari ini, pilih kategori (Fiksi, Bisnis, Psikologi,
+   Sejarah, Sains, Fantasi, Romansa), atau cari judul, penulis, maupun ISBN.
+3. **Detail buku**: sampul besar, tahun terbit, jumlah halaman, rating, deskripsi,
+   subjek, dan ulasan pembaca lain.
+4. **Simpan ke rak**: buku masuk ke tab *Rak bukuku* dan tersinkron di semua perangkat.
+5. **Ulas**: beri 1–5 bintang dan komentar. Ulasan bisa dihapus oleh penulisnya atau admin.
+6. **Pengumuman**: admin menulis pengumuman; pengguna melihatnya secara realtime dan
+   menerima push notification.
+7. **Admin**: tab khusus admin untuk melihat statistik pengguna dan mengubah role.
+
+### Teknologi
+
+| Bagian | Yang dipakai |
+|--------|--------------|
+| Framework | Flutter 3.47, Dart 3.13, Material 3 |
+| State management | Riverpod 3 |
+| Backend | Firebase Authentication, Cloud Firestore, Cloud Messaging (proyek `pustakaku-8c065`) |
+| Data buku | Open Library API (tanpa API key) |
+| Notifikasi | `firebase_messaging` + `flutter_local_notifications` |
+| Tampilan | Font Fraunces & Plus Jakarta Sans, tema terang/gelap lewat `ThemeExtension`, `cached_network_image` |
+
+### Unduh
+
+APK Android siap pasang tersedia di halaman
+[Releases](https://github.com/isyraqawwaluthorid/pustakaku/releases/latest)
+(Android 6.0 ke atas). Setelah memasang, buat akun baru dari layar *Daftar*.
+
+| Versi | Tanggal | Isi |
+|-------|---------|-----|
+| v1.1.0 | 22 Nov 2026 | Tampilan baru Perpustakaan Klasik, ikon & splash baru, perbaikan sampul yang tidak muncul, label navigasi tidak terlipat |
+| v1.0.0 | 16 Nov 2026 | Rilis pertama: semua fitur, terhubung ke Firebase, push notification terverifikasi |
+
 ## Pemenuhan Minimum Requirement
 
 | # | Ketentuan | Implementasi | File utama |
@@ -36,7 +79,7 @@ sebuah `ThemeExtension`), termasuk varian mode gelap.
 - **Jelajah** – carousel buku tren harian, chip kategori (Fiksi, Bisnis, Psikologi, dst. lewat pencarian `subject:`), pencarian judul/penulis/ISBN dengan debounce 500 ms dan *infinite scroll*.
 - **Detail buku** – sampul, deskripsi, subjek, rating Open Library, rating rata-rata pembaca Pustakaku, daftar ulasan, tulis ulasan.
 - **Favorit** – rak sampul tiga kolom; tersimpan di Firestore (`users/{uid}/favorites`) dan tersinkron realtime antar perangkat.
-- **Pengumuman** – daftar pengumuman realtime; admin membuat pengumuman dan semua pengguna menerima push notification.
+- **Pengumuman** – daftar pengumuman realtime; admin membuat pengumuman dan semua pengguna menerima push notification (otomatis bila Cloud Function di-deploy, lihat bagian Push notification; tanpa itu dikirim dari Firebase Console ke topic `pengumuman`).
 - **Panel Admin** – statistik pengguna dan ubah role (user ⇄ admin).
 - **Profil** – info akun, badge role, uji notifikasi lokal, lihat token FCM, keluar.
 
