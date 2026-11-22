@@ -158,8 +158,11 @@ abstract final class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith(
           (s) => TextStyle(
             fontFamily: sans,
+            // Bobot sama (500) untuk aktif/tidak aktif: dengan lima tab, label
+            // "Pengumuman" berbobot lebih tebal terlipat dua baris. Tab aktif
+            // tetap dibedakan lewat warna dan latar pil di ikon.
             fontSize: 12,
-            fontWeight: s.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w500,
+            fontWeight: FontWeight.w500,
             color: s.contains(WidgetState.selected) ? p.primary : p.muted,
           ),
         ),

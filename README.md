@@ -17,11 +17,25 @@ Dibuat sebagai Projek Akhir mata kuliah Pemrograman Mobile.
 | 5 | **API (open source)** | [Open Library API](https://openlibrary.org/developers/api): pencarian (`/search.json`), tren (`/trending/daily.json`), detail karya (`/works/{id}.json`), sampul (`covers.openlibrary.org`) | `lib/services/open_library_api.dart` |
 | 6 | **Authentication dan Authorization** | *Authentication*: daftar, masuk, reset kata sandi, keluar (Firebase Auth). *Authorization*: role `user`/`admin` di `users/{uid}.role`; tab Admin & tombol buat/hapus pengumuman hanya untuk admin; ulasan hanya bisa dihapus pemilik atau admin; semuanya ditegakkan ulang di **Firestore Security Rules** | `lib/providers/auth_provider.dart`, `lib/screens/admin_screen.dart`, `firestore.rules` |
 
+## Tampilan
+
+Gaya **Perpustakaan Klasik**: latar kertas krem, hijau tua, aksen kuningan, judul serif
+[Fraunces](https://fonts.google.com/specimen/Fraunces) dan teks
+[Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans) (keduanya SIL OFL 1.1,
+dibundel di `assets/fonts`). Semua token warna ada di `lib/core/theme.dart` (`AppPalette`,
+sebuah `ThemeExtension`), termasuk varian mode gelap.
+
+- Ikon aplikasi, splash screen, dan ikon notifikasi dibuat dari `assets/brand/`
+  (`dart run flutter_launcher_icons`, `dart run flutter_native_splash:create`).
+- Sampul tanpa gambar atau yang masih dimuat diganti sampul cadangan berwarna berisi judul.
+- `lib/services/cover_cache_manager.dart` menolak unduhan sampul yang kosong atau bukan
+  gambar, sehingga tidak tersimpan di cache dan dicoba lagi lain kali.
+
 ## Fitur
 
-- **Jelajah** – buku tren harian; pencarian judul/penulis/ISBN dengan debounce 500 ms dan *infinite scroll*.
+- **Jelajah** – carousel buku tren harian, chip kategori (Fiksi, Bisnis, Psikologi, dst. lewat pencarian `subject:`), pencarian judul/penulis/ISBN dengan debounce 500 ms dan *infinite scroll*.
 - **Detail buku** – sampul, deskripsi, subjek, rating Open Library, rating rata-rata pembaca Pustakaku, daftar ulasan, tulis ulasan.
-- **Favorit** – simpan buku ke Firestore (`users/{uid}/favorites`), tersinkron realtime antar perangkat.
+- **Favorit** – rak sampul tiga kolom; tersimpan di Firestore (`users/{uid}/favorites`) dan tersinkron realtime antar perangkat.
 - **Pengumuman** – daftar pengumuman realtime; admin membuat pengumuman dan semua pengguna menerima push notification.
 - **Panel Admin** – statistik pengguna dan ubah role (user ⇄ admin).
 - **Profil** – info akun, badge role, uji notifikasi lokal, lihat token FCM, keluar.
