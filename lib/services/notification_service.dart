@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../core/mixins.dart';
@@ -20,6 +21,10 @@ final class NotificationService with LoggerMixin {
   static final instance = NotificationService._();
 
   static const topicAnnouncements = 'pengumuman';
+
+  /// Ikon status bar Android harus siluet putih bertransparansi;
+  /// ikon peluncur berwarna akan tampil sebagai kotak putih.
+  static const _smallIcon = '@drawable/ic_stat_pustakaku';
   static const _channel = AndroidNotificationChannel(
     'pengumuman_channel',
     'Pengumuman',
@@ -51,7 +56,7 @@ final class NotificationService with LoggerMixin {
     // 2. Siapkan notifikasi lokal (foreground).
     await _local.initialize(
       settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings(_smallIcon),
         iOS: DarwinInitializationSettings(),
       ),
       onDidReceiveNotificationResponse: (_) =>
@@ -117,7 +122,8 @@ final class NotificationService with LoggerMixin {
           channelDescription: _channel.description,
           importance: Importance.high,
           priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
+          icon: _smallIcon,
+          color: const Color(0xFF1F4D3A),
         ),
         iOS: const DarwinNotificationDetails(),
       ),
@@ -130,7 +136,7 @@ final class NotificationService with LoggerMixin {
       // Mode demo: siapkan hanya plugin notifikasi lokal (tanpa FCM).
       await _local.initialize(
         settings: const InitializationSettings(
-          android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+          android: AndroidInitializationSettings(_smallIcon),
           iOS: DarwinInitializationSettings(),
         ),
       );

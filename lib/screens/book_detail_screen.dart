@@ -6,89 +6,143 @@ import '../models/book.dart';
 import '../models/review.dart';
 import '../providers/providers.dart';
 import '../widgets/book_cover.dart';
+import '../widgets/empty_state.dart';
 import '../widgets/rating_stars.dart';
+import '../widgets/skeleton.dart';
 
 class BookDetailScreen extends ConsumerWidget {
-  const BookDetailScreen({super.key, required this.book});
+  const BookDetailScreen({super.key, required this.book, this.heroTag});
+
   final Book book;
+
+  /// Harus sama dengan tag Hero di layar asal agar sampul beranimasi.
+  final String? heroTag;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final p = context.palette;
     final detail = ref.watch(bookDetailProvider(book.workId));
     final isFav = ref.watch(isFavoriteProvider(book.workId));
     final reviews = ref.watch(reviewsProvider(book.workId));
     final avg = ref.watch(averageRatingProvider(book.workId));
     final me = ref.watch(appUserProvider).value;
+    final reviewCount = reviews.value?.length ?? 0;
+
+    Future<void> toggleFav() async {
+      final r = await ref.read(toggleFavoriteProvider)(book);
+      if (!context.mounted) return;
+      r.when(
+        success: (_) => context.showSnack(isFav ? 'Dihapus dari favorit' : 'Disimpan ke favorit'),
+        failure: (m) => context.showSnack(m, error: true),
+      );
+    }
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            title: Text(book.title, maxLines: 2, overflow: TextOverflow.ellipsis),
-            actions: [
-              IconButton(
-                tooltip: isFav ? 'Hapus dari favorit' : 'Simpan ke favorit',
-                icon: Icon(isFav ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded),
-                onPressed: () async {
-                  final r = await ref.read(toggleFavoriteProvider)(book);
-                  if (!context.mounted) return;
-                  r.when(
-                    success: (_) => context.showSnack(
-                        isFav ? 'Dihapus dari favorit' : 'Disimpan ke favorit'),
-                    failure: (m) => context.showSnack(m, error: true),
-                  );
-                },
+          SliverToBoxAdapter(
+            child: Container(
+              color: p.paperDeep,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 28),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _RoundButton(
+                            icon: Icons.arrow_back_rounded,
+                            tooltip: 'Kembali',
+                            onTap: () => Navigator.of(context).maybePop(),
+                          ),
+                          _RoundButton(
+                            icon: isFav ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                            tooltip: isFav ? 'Hapus dari favorit' : 'Simpan ke favorit',
+                            onTap: toggleFav,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      BookCover.ofBook(
+                        book,
+                        size: CoverSize.large,
+                        width: 150,
+                        height: 225,
+                        heroTag: heroTag ?? 'cover-${book.workId}',
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ],
+            ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
             sliver: SliverList.list(
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BookCover(
-                      url: book.coverUrl(CoverSize.large),
-                      width: 120,
-                      height: 176,
-                      heroTag: 'cover-${book.workId}',
+                Text(book.title, style: context.text.headlineMedium, textAlign: TextAlign.center),
+                const SizedBox(height: 6),
+                Text(
+                  book.authorLabel,
+                  style: context.text.bodyLarge?.copyWith(color: p.muted),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                _StatsRow(
+                  stats: [
+                    (book.firstPublishYear?.toString() ?? '-', 'Terbit'),
+                    (book.pages?.toString() ?? '-', 'Halaman'),
+                    (
+                      avg != null ? avg.toStringAsFixed(1) : '$reviewCount',
+                      avg != null ? 'Rating · $reviewCount ulasan' : 'Ulasan',
                     ),
-                    const SizedBox(width: 16),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(book.authorLabel, style: context.text.titleMedium),
-                          const SizedBox(height: 8),
-                          if (book.firstPublishYear case final y?)
-                            Text('Terbit pertama: $y', style: context.text.bodyMedium),
-                          if (book.pages case final p?)
-                            Text('± $p halaman', style: context.text.bodyMedium),
-                          const SizedBox(height: 8),
-                          if (avg != null)
-                            Row(children: [
-                              RatingStars(rating: avg),
-                              const SizedBox(width: 6),
-                              Text('${avg.toStringAsFixed(1)} · '
-                                  '${reviews.value?.length ?? 0} ulasan'),
-                            ])
-                          else if (book.rating case final r?)
-                            Row(children: [
-                              RatingStars(rating: r),
-                              const SizedBox(width: 6),
-                              Text('${r.toStringAsFixed(1)} (Open Library)'),
-                            ]),
-                        ],
+                      child: isFav
+                          ? OutlinedButton.icon(
+                              onPressed: toggleFav,
+                              icon: const Icon(Icons.bookmark_rounded),
+                              label: const Text('Tersimpan di rak'),
+                            )
+                          : FilledButton.icon(
+                              onPressed: toggleFav,
+                              icon: const Icon(Icons.bookmark_add_outlined),
+                              label: const Text('Simpan ke Favorit'),
+                            ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 52,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                        onPressed: me == null
+                            ? null
+                            : () => _showReviewSheet(context, ref, me.uid, me.displayName),
+                        child: const Icon(Icons.rate_review_outlined, semanticLabel: 'Tulis ulasan'),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                Text('Deskripsi', style: context.text.titleMedium),
+                const SizedBox(height: 28),
+                const SectionHeader('Tentang buku ini'),
                 const SizedBox(height: 8),
                 detail.when(
-                  loading: () => const LinearProgressIndicator(),
+                  loading: () => const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Skeleton(),
+                      SizedBox(height: 8),
+                      Skeleton(),
+                      SizedBox(height: 8),
+                      Skeleton(width: 200),
+                    ],
+                  ),
                   error: (e, _) => Text('$e', style: TextStyle(color: context.colors.error)),
                   data: (d) => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,42 +150,53 @@ class BookDetailScreen extends ConsumerWidget {
                       _ExpandableText(d.description),
                       if (d.subjects.isNotEmpty) ...[
                         const SizedBox(height: 16),
-                        Text('Subjek', style: context.text.titleMedium),
-                        const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            for (final s in d.subjects)
-                              Chip(label: Text(s.truncate(28)), visualDensity: VisualDensity.compact),
+                            for (final s in d.subjects.take(8))
+                              Chip(
+                                label: Text(s.truncate(28)),
+                                visualDensity: VisualDensity.compact,
+                                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
                           ],
                         ),
                       ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(child: Text('Ulasan pembaca', style: context.text.titleMedium)),
-                    FilledButton.tonalIcon(
-                      onPressed: me == null
-                          ? null
-                          : () => _showReviewSheet(context, ref, me.uid, me.displayName),
-                      icon: const Icon(Icons.rate_review_outlined),
-                      label: const Text('Tulis ulasan'),
-                    ),
-                  ],
+                const SizedBox(height: 28),
+                SectionHeader(
+                  'Ulasan pembaca',
+                  trailing: avg == null
+                      ? null
+                      : Row(children: [
+                          RatingStars(rating: avg, size: 16),
+                          const SizedBox(width: 6),
+                          Text(avg.toStringAsFixed(1), style: const TextStyle(fontWeight: FontWeight.w700)),
+                        ]),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 reviews.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () => const Skeleton(height: 72, radius: 16),
                   error: (e, _) => Text('$e'),
                   data: (list) => list.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Text('Belum ada ulasan. Jadilah yang pertama!',
-                              style: TextStyle(color: context.colors.outline)),
+                      ? Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Belum ada ulasan', style: context.text.titleSmall),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Jadilah pembaca pertama yang memberi pendapat.',
+                                  style: TextStyle(color: p.muted),
+                                ),
+                              ],
+                            ),
+                          ),
                         )
                       : Column(
                           children: [
@@ -141,9 +206,7 @@ class BookDetailScreen extends ConsumerWidget {
                                 // Authorization: pemilik ulasan ATAU admin boleh menghapus.
                                 canDelete: me != null && (me.uid == r.uid || me.isAdmin),
                                 onDelete: () async {
-                                  final res = await ref
-                                      .read(firestoreServiceProvider)
-                                      .deleteReview(r.id);
+                                  final res = await ref.read(firestoreServiceProvider).deleteReview(r.id);
                                   if (!context.mounted) return;
                                   res.when(
                                     success: (_) => context.showSnack('Ulasan dihapus'),
@@ -154,7 +217,6 @@ class BookDetailScreen extends ConsumerWidget {
                           ],
                         ),
                 ),
-                const SizedBox(height: 32),
               ],
             ),
           ),
@@ -163,8 +225,7 @@ class BookDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showReviewSheet(
-      BuildContext context, WidgetRef ref, String uid, String name) async {
+  Future<void> _showReviewSheet(BuildContext context, WidgetRef ref, String uid, String name) async {
     var rating = 5;
     final text = TextEditingController();
     final submitted = await showModalBottomSheet<bool>(
@@ -178,16 +239,18 @@ class BookDetailScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Ulas "${book.title.truncate(40)}"', style: ctx.text.titleMedium),
-              const SizedBox(height: 12),
+              Text('Ulas buku ini', style: ctx.text.titleLarge),
+              const SizedBox(height: 4),
+              Text(book.title.truncate(60), style: TextStyle(color: ctx.palette.muted)),
+              const SizedBox(height: 16),
               Center(
                 child: RatingStars(
                   rating: rating.toDouble(),
-                  size: 36,
+                  size: 38,
                   onChanged: (v) => setState(() => rating = v),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: text,
                 maxLines: 4,
@@ -196,10 +259,7 @@ class BookDetailScreen extends ConsumerWidget {
                 decoration: const InputDecoration(hintText: 'Bagaimana pendapatmu tentang buku ini?'),
               ),
               const SizedBox(height: 8),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Kirim ulasan'),
-              ),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Kirim ulasan')),
             ],
           ),
         ),
@@ -223,6 +283,64 @@ class BookDetailScreen extends ConsumerWidget {
   }
 }
 
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({required this.icon, required this.tooltip, required this.onTap});
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => IconButton.filled(
+        tooltip: tooltip,
+        onPressed: onTap,
+        style: IconButton.styleFrom(
+          backgroundColor: context.palette.card,
+          foregroundColor: context.palette.ink,
+          minimumSize: const Size(44, 44),
+        ),
+        icon: Icon(icon),
+      );
+}
+
+class _StatsRow extends StatelessWidget {
+  const _StatsRow({required this.stats});
+
+  /// Record (nilai, label).
+  final List<(String, String)> stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              for (final (i, (value, label)) in stats.indexed) ...[
+                if (i > 0) VerticalDivider(color: p.line, width: 1),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(value, style: context.text.titleLarge?.copyWith(fontSize: 19)),
+                      const SizedBox(height: 2),
+                      Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: p.muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ReviewTile extends StatelessWidget {
   const _ReviewTile({required this.review, required this.canDelete, required this.onDelete});
   final Review review;
@@ -230,34 +348,55 @@ class _ReviewTile extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) => Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        child: ListTile(
-          leading: CircleAvatar(child: Text(review.authorName.initials)),
-          title: Row(children: [
-            Expanded(child: Text(review.authorName, style: context.text.titleSmall)),
-            RatingStars(rating: review.rating.toDouble(), size: 16),
-          ]),
-          subtitle: Column(
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 6, 14),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 4),
-              Text(review.text),
-              const SizedBox(height: 4),
-              Text(review.createdAt?.timeAgo ?? 'mengirim…',
-                  style: context.text.labelSmall?.copyWith(color: context.colors.outline)),
-            ],
-          ),
-          trailing: canDelete
-              ? IconButton(
-                  icon: const Icon(Icons.delete_outline),
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: p.primarySoft,
+                foregroundColor: p.primary,
+                child: Text(review.authorName.initials, style: const TextStyle(fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(review.authorName, style: context.text.titleSmall),
+                    const SizedBox(height: 2),
+                    Row(children: [
+                      RatingStars(rating: review.rating.toDouble(), size: 15),
+                      const SizedBox(width: 8),
+                      Text(
+                        review.createdAt?.timeAgo ?? 'mengirim…',
+                        style: TextStyle(fontSize: 12, color: p.muted),
+                      ),
+                    ]),
+                    const SizedBox(height: 8),
+                    Text(review.text),
+                  ],
+                ),
+              ),
+              if (canDelete)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded),
+                  color: p.muted,
                   tooltip: 'Hapus ulasan',
                   onPressed: onDelete,
-                )
-              : null,
-          isThreeLine: true,
+                ),
+            ],
+          ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _ExpandableText extends StatefulWidget {
@@ -273,13 +412,17 @@ class _ExpandableTextState extends State<_ExpandableText> {
 
   @override
   Widget build(BuildContext context) {
-    final long = widget.text.length > 300;
+    final long = widget.text.length > 280;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(_expanded || !long ? widget.text : widget.text.truncate(300)),
+        Text(
+          _expanded || !long ? widget.text : widget.text.truncate(280),
+          style: context.text.bodyLarge?.copyWith(fontSize: 15),
+        ),
         if (long)
           TextButton(
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
             onPressed: () => setState(() => _expanded = !_expanded),
             child: Text(_expanded ? 'Lebih sedikit' : 'Selengkapnya'),
           ),

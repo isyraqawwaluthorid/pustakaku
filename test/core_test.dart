@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pustakaku/core/extensions.dart';
 import 'package:pustakaku/core/result.dart';
 import 'package:pustakaku/models/book.dart';
+import 'package:pustakaku/services/cover_cache_manager.dart';
 
 void main() {
   group('Result<T> (sealed class)', () {
@@ -85,6 +86,15 @@ void main() {
         const Book(workId: 'b', title: 'B', authors: [], rating: 5),
       ]..sort();
       expect(books.first.workId, 'b');
+    });
+  });
+
+  group('Validasi sampul', () {
+    test('menolak isi kosong dan HTML, menerima JPEG/PNG', () {
+      expect(looksLikeImage(const []), isFalse);
+      expect(looksLikeImage('<!DOCTYPE html><html>'.codeUnits), isFalse);
+      expect(looksLikeImage([0xFF, 0xD8, 0xFF, 0xE0, ...List.filled(20, 0)]), isTrue);
+      expect(looksLikeImage([0x89, 0x50, 0x4E, 0x47, ...List.filled(20, 0)]), isTrue);
     });
   });
 }

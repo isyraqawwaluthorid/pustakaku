@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'theme.dart';
+
 /// Advanced Dart: extension methods menambah fungsi ke tipe yang sudah ada
 /// tanpa membuat subclass.
 
@@ -59,6 +61,9 @@ extension BuildContextX on BuildContext {
   ThemeData get theme => Theme.of(this);
   ColorScheme get colors => theme.colorScheme;
   TextTheme get text => theme.textTheme;
+
+  /// Token warna tambahan (kertas, kuningan, garis, palet sampul).
+  AppPalette get palette => theme.extension<AppPalette>() ?? AppPalette.light;
 
   void showSnack(String message, {bool error = false}) {
     ScaffoldMessenger.of(this)

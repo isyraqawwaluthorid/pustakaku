@@ -51,7 +51,9 @@ class _MainShellState extends ConsumerState<MainShell> {
       (
         page: const HomeScreen(),
         dest: const NavigationDestination(
-            icon: Icon(Icons.search_rounded), label: 'Jelajah'),
+            icon: Icon(Icons.explore_outlined),
+            selectedIcon: Icon(Icons.explore_rounded),
+            label: 'Jelajah'),
       ),
       (
         page: const FavoritesScreen(),

@@ -38,49 +38,56 @@ class AnnouncementsScreen extends ConsumerWidget {
                     'sebagai push notification.',
               )
             : ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
                 itemCount: list.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (_, i) {
                   final a = list[i];
+                  final p = context.palette;
                   return Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Icon(Icons.notifications_active_outlined,
-                                  color: context.colors.primary),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                  child: Text(a.title, style: context.text.titleMedium)),
-                              if (isAdmin)
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline),
-                                  tooltip: 'Hapus',
-                                  onPressed: () async {
-                                    final r = await ref
-                                        .read(firestoreServiceProvider)
-                                        .deleteAnnouncement(a.id);
-                                    if (!context.mounted) return;
-                                    r.when(
-                                      success: (_) => context.showSnack('Pengumuman dihapus'),
-                                      failure: (m) => context.showSnack(m, error: true),
-                                    );
-                                  },
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(color: p.accentSoft, shape: BoxShape.circle),
+                            child: Icon(Icons.campaign_rounded, color: p.accent),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(a.title, style: context.text.titleMedium),
+                                const SizedBox(height: 6),
+                                Text(a.body),
+                                const SizedBox(height: 10),
+                                Text(
+                                  '${a.authorName} · ${a.createdAt?.timeAgo ?? 'mengirim…'}',
+                                  style: TextStyle(fontSize: 12, color: p.muted),
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(a.body),
-                          const SizedBox(height: 12),
-                          Text(
-                            '${a.authorName} · ${a.createdAt?.timeAgo ?? 'mengirim…'}',
-                            style: context.text.labelSmall
-                                ?.copyWith(color: context.colors.outline),
-                          ),
+                          if (isAdmin)
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline_rounded),
+                              color: p.muted,
+                              tooltip: 'Hapus pengumuman',
+                              onPressed: () async {
+                                final r = await ref
+                                    .read(firestoreServiceProvider)
+                                    .deleteAnnouncement(a.id);
+                                if (!context.mounted) return;
+                                r.when(
+                                  success: (_) => context.showSnack('Pengumuman dihapus'),
+                                  failure: (m) => context.showSnack(m, error: true),
+                                );
+                              },
+                            ),
                         ],
                       ),
                     ),

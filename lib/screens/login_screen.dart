@@ -75,18 +75,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with ValidatorsMixin 
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.local_library_rounded,
-                        size: 72, color: context.colors.primary),
-                    const SizedBox(height: 12),
-                    Text('Pustakaku',
-                        textAlign: TextAlign.center,
-                        style: context.text.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    Text('Cari, simpan, dan ulas buku favoritmu',
-                        textAlign: TextAlign.center,
-                        style: context.text.bodyMedium
-                            ?.copyWith(color: context.colors.outline)),
-                    const SizedBox(height: 32),
+                    const _BrandHeader(),
+                    const SizedBox(height: 36),
                     TextFormField(
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
@@ -165,7 +155,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with ValidatorsMixin 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Belum punya akun?'),
+                        Text('Belum punya akun?', style: TextStyle(color: context.palette.muted)),
                         TextButton(
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const RegisterScreen()),
@@ -181,6 +171,52 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with ValidatorsMixin 
           ),
         ),
       ),
+    );
+  }
+}
+
+
+/// Logo, nama aplikasi, dan deretan punggung buku sebagai identitas visual.
+class _BrandHeader extends StatelessWidget {
+  const _BrandHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    const spines = <(double, int)>[(54, 0), (70, 3), (62, 1), (78, 2), (58, 4), (66, 5)];
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            for (final (height, color) in spines)
+              Container(
+                width: 18,
+                height: height,
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                decoration: BoxDecoration(
+                  color: p.covers[color],
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+                ),
+              ),
+            const SizedBox(width: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: Image.asset('assets/brand/logo_rounded.png', width: 78, height: 78),
+            ),
+          ],
+        ),
+        Container(height: 4, width: 230, color: p.lineStrong),
+        const SizedBox(height: 24),
+        Text('Pustakaku', style: context.text.displaySmall, textAlign: TextAlign.center),
+        const SizedBox(height: 6),
+        Text(
+          'Cari, simpan, dan ulas buku favoritmu',
+          style: context.text.bodyLarge?.copyWith(color: p.muted),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }
